@@ -5,13 +5,16 @@ package com.zyh.chuxin.app.model;
  * Created by zhyh on 2015/1/22.
  */
 public class Country {
-    private int id;
-    private String name;
     private String code;
-    private int cityId;
+    private String name;
+    private String cityCode;
 
-    public void setId(int id) {
-        this.id = id;
+    public void setCityCode(String cityCode) {
+        this.cityCode = cityCode;
+    }
+
+    public String getCityCode() {
+        return cityCode;
     }
 
     public void setName(String name) {
@@ -22,23 +25,11 @@ public class Country {
         this.code = code;
     }
 
-    public void setCityId(int cityId) {
-        this.cityId = cityId;
-    }
-
-    public int getId() {
-        return id;
-    }
-
     public String getName() {
         return name;
     }
 
     public String getCode() {
         return code;
-    }
-
-    public int getCityId() {
-        return cityId;
     }
 }

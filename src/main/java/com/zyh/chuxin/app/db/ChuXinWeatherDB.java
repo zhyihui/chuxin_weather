@@ -41,19 +41,21 @@ public class ChuXinWeatherDB {
 
     /**
      * 将Province保存到数据库
+     *
      * @param province 要保存的Province实体
      */
     public void saveProvince(Province province) {
         if (null != province) {
             ContentValues values = new ContentValues();
-            values.put("name", province.getName());
-            values.put("code", province.getCode());
+            values.put("province_name", province.getName());
+            values.put("province_code", province.getCode());
             db.insert("province", null, values);
         }
     }
 
     /**
      * 加载省级行政单位
+     *
      * @return 所有省级行政单位
      */
     public List<Province> loadProvinces() {
@@ -63,9 +65,8 @@ public class ChuXinWeatherDB {
         if (cursor.moveToFirst()) {
             do {
                 Province province = new Province();
-                province.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                province.setName(cursor.getString(cursor.getColumnIndex("name")));
-                province.setCode(cursor.getString(cursor.getColumnIndex("code")));
+                province.setName(cursor.getString(cursor.getColumnIndex("province_name")));
+                province.setCode(cursor.getString(cursor.getColumnIndex("province_code")));
                 provinceList.add(province);
             } while (cursor.moveToNext());
         }
@@ -75,35 +76,35 @@ public class ChuXinWeatherDB {
 
     /**
      * 保存市级行政单位
+     *
      * @param city City实体
      */
     public void saveCity(City city) {
         if (null != city) {
             ContentValues values = new ContentValues();
-            values.put("name", city.getName());
-            values.put("code", city.getCode());
-            values.put("province_id", city.getProvinceId());
+            values.put("city_name", city.getName());
+            values.put("city_code", city.getCode());
+            values.put("province_code", city.getProvinceCode());
             db.insert("city", null, values);
         }
     }
 
     /**
      * 加载指定省级行政单位下的所有市级行政单位
-     * @param provinceId 省级行政单位ID
+     *
      * @return 给定省级行政单位下的所有市级行政单位
      */
-    public List<City> loadCities(int provinceId) {
+    public List<City> loadCities(String provinceCode) {
         List<City> cityList = new ArrayList<City>();
 
-        Cursor cursor = db.query("city", null, "province_id=?", new String[]{String.valueOf
-                (provinceId)}, null, null, null);
+        Cursor cursor = db.query("city", null, "province_code=?", new String[]{provinceCode},
+                null, null, null);
         if (cursor.moveToFirst()) {
             do {
                 City city = new City();
-                city.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                city.setName(cursor.getString(cursor.getColumnIndex("name")));
-                city.setCode(cursor.getString(cursor.getColumnIndex("code")));
-                city.setProvinceId(provinceId);
+                city.setName(cursor.getString(cursor.getColumnIndex("city_name")));
+                city.setCode(cursor.getString(cursor.getColumnIndex("city_code")));
+                city.setProvinceCode(provinceCode);
                 cityList.add(city);
             } while (cursor.moveToNext());
         }
@@ -113,37 +114,52 @@ public class ChuXinWeatherDB {
 
     /**
      * 保存县级行政单位
+     *
      * @param country Country实体
      */
     public void saveCountry(Country country) {
         if (null != country) {
             ContentValues values = new ContentValues();
-            values.put("name", country.getName());
-            values.put("code", country.getCode());
-            values.put("city_id", country.getCityId());
+            values.put("country_name", country.getName());
+            values.put("country_code", country.getCode());
+            values.put("city_code", country.getCityCode());
             db.insert("country", null, values);
         }
     }
 
     /**
      * 加载指定市级行政单位下的所有县级行政单位
-     * @param cityId 市级行政单位ID
+     *
      * @return 给定市级行政单位下的所有县级行政单位
      */
-    public List<Country> loadCountries(int cityId) {
+    public List<Country> loadCountries(String cityCode) {
         List<Country> countryList = new ArrayList<Country>();
 
-        Cursor cursor = db.query("country", null, "city_id=?", new String[]{String.valueOf
-                (cityId)}, null, null, null);
+        Cursor cursor = db.query("country", null, "city_code=?", new String[]{cityCode}, null,
+                null, null);
         if (cursor.moveToFirst()) {
-            Country country = new Country();
-            country.setId(cursor.getInt(cursor.getColumnIndex("id")));
-            country.setName(cursor.getString(cursor.getColumnIndex("name")));
-            country.setCode(cursor.getString(cursor.getColumnIndex("code")));
-            country.setCityId(cityId);
-            countryList.add(country);
+            do {
+                Country country = new Country();
+                country.setName(cursor.getString(cursor.getColumnIndex("country_name")));
+                country.setCode(cursor.getString(cursor.getColumnIndex("country_code")));
+                country.setCityCode(cityCode);
+                countryList.add(country);
+            } while (cursor.moveToNext());
         }
 
         return countryList;
+    }
+
+    public City loadCity(String cityName) {
+        Cursor cursor = db.query("city", null, "city_name=?", new String[]{cityName}, null, null,
+                null);
+        if (cursor.moveToFirst()) {
+            City city = new City();
+            city.setName(cursor.getString(cursor.getColumnIndex("city_name")));
+            city.setCode(cursor.getString(cursor.getColumnIndex("city_code")));
+            city.setProvinceCode(cursor.getString(cursor.getColumnIndex("province_code")));
+            return city;
+        }
+        return null;
     }
 }

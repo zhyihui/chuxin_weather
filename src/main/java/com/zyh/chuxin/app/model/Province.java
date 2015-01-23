@@ -5,13 +5,8 @@ package com.zyh.chuxin.app.model;
  * Created by zhyh on 2015/1/22.
  */
 public class Province {
-    private int id;
-    private String name;
-    private String code;
-
-    public void setId(int id) {
-        this.id = id;
-    }
+    private String code;    // 省级行政单位代码, 为主键
+    private String name;    // 省级行政单位名称
 
     public void setName(String name) {
         this.name = name;
@@ -19,10 +14,6 @@ public class Province {
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public String getName() {

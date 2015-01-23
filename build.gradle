@@ -13,12 +13,19 @@ repositories {
 }
 
 android {
+    signingConfigs {
+        chuxin_debug {
+            keyAlias 'bojie_debug_key'
+            keyPassword 'bojietech'
+            storeFile file('D:/Android/keystore/bojie_debug.jks')
+            storePassword 'bojietech'
+        }
+    }
     compileSdkVersion 19
     buildToolsVersion "20.0.0"
-
     defaultConfig {
         applicationId "com.zyh.chuxin.app"
-        minSdkVersion 17
+        minSdkVersion 16
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
@@ -27,10 +34,16 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.chuxin_debug
         }
+        debug {
+            signingConfig signingConfigs.chuxin_debug
+        }
+    }
+    productFlavors {
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
 }

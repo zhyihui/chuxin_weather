@@ -3,5 +3,7 @@
 
     <string name="app_name">初心天气</string>
     <string name="hello_world">Hello world!</string>
+    <string name="tip_network_mobile">当前为移动网络, 可能会产生流量费用</string>
+    <string name="tip_network_none">当前没有网络</string>
 
 </resources>
