@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 import com.zyh.chuxin.app.model.City;
 import com.zyh.chuxin.app.model.Country;
 import com.zyh.chuxin.app.model.Province;
@@ -18,25 +19,37 @@ import java.util.List;
 public class ChuXinWeatherDB {
 
     // 数据库名称
-    public static final String DB_NAME = "chuxin_weather";
+    public static final String DB_NAME = "city.db";
 
     // 数据库版本
     public static final int DB_VERSION = 1;
 
     private static ChuXinWeatherDB weatherDB;
 
+    private String dbFilePath;
     private SQLiteDatabase db;
 
-    private ChuXinWeatherDB(Context context) {
-        ChuXinOpenHelper openHelper = new ChuXinOpenHelper(context, DB_NAME, null, DB_VERSION);
-        db = openHelper.getWritableDatabase();
+    private ChuXinWeatherDB(Context context, String dbFilePath) {
+        if (TextUtils.isEmpty(dbFilePath)) {
+            ChuXinOpenHelper dbHelper = new ChuXinOpenHelper(context, DB_NAME, null, DB_VERSION);
+            db = dbHelper.getWritableDatabase();
+        } else {
+            db = context.openOrCreateDatabase(dbFilePath, Context.MODE_PRIVATE, null);
+        }
     }
 
-    public static ChuXinWeatherDB getInstance(Context context) {
-        if (weatherDB == null) {
-            weatherDB = new ChuXinWeatherDB(context);
+    public static ChuXinWeatherDB getInstance(Context context, String dbFilePath) {
+        if (weatherDB == null || (dbFilePath != null && !dbFilePath.equals(weatherDB.dbFilePath))) {
+            weatherDB = new ChuXinWeatherDB(context, dbFilePath);
+            weatherDB.dbFilePath = dbFilePath;
         }
         return weatherDB;
+    }
+
+    public void clear() {
+        db.execSQL("delete from province;");
+        db.execSQL("delete from city;");
+        db.execSQL("delete from country;");
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.zyh.chuxin.app.util;
 
-import android.content.Context;
 import com.zyh.chuxin.app.db.ChuXinWeatherDB;
 import com.zyh.chuxin.app.model.City;
 import com.zyh.chuxin.app.model.Country;
@@ -18,35 +17,46 @@ public class CityDataFetcher {
     private static final String URL_SUFFIX = ".xml";
 
     private OnCityDataFetchedListener listener;
-    private Context mContext;
     private ChuXinWeatherDB weatherDB;
 
-    public CityDataFetcher(Context context, OnCityDataFetchedListener listener) {
+    public CityDataFetcher(ChuXinWeatherDB db, OnCityDataFetchedListener listener) {
         this.listener = listener;
-        mContext = context;
-        weatherDB = ChuXinWeatherDB.getInstance(context);
+        weatherDB = db;
     }
 
-    public void fetchCityData() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                fetchInThread();
-            }
-        }).start();
+    public void fetch(boolean async) {
+        if (async) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    fetchInThread();
+                }
+            }).start();
+        } else {
+            fetchProvince();
+        }
     }
 
     private void fetchInThread() {
+        try {
+            fetchProvince();
+            if (listener != null) {
+                listener.onCityDataFetched();
+            }
+        } catch (Exception e) {
+            if (listener != null) {
+                listener.onErrorOccur();
+            }
+        }
+    }
+
+    private void fetchProvince() {
         String fetchProvinceUrl = CITY_BASE_URL + URL_SUFFIX;
         List<Province> provinceList = Utility.parseProvinceResponse(HttpUtil.sendHttpRequest
                 (fetchProvinceUrl));
         for (Province province : provinceList) {
             weatherDB.saveProvince(province);
             fetchCity(province.getCode());
-        }
-
-        if (listener != null) {
-            listener.onCityDataFetched();
         }
     }
 
@@ -72,5 +82,7 @@ public class CityDataFetcher {
 
     public interface OnCityDataFetchedListener {
         void onCityDataFetched();
+
+        void onErrorOccur();
     }
 }

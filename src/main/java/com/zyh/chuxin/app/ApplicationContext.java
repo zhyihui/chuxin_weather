@@ -6,7 +6,11 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo.State;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 import com.zyh.chuxin.app.db.ChuXinWeatherDB;
+import com.zyh.chuxin.app.util.CityDataFetcher;
+
+import java.io.*;
 
 /**
  * 应用上下文环境
@@ -22,22 +26,63 @@ public class ApplicationContext extends Application {
     public void onCreate() {
         super.onCreate();
         application = this;
-
-        weatherDB = ChuXinWeatherDB.getInstance(this);
-
-
+        try {
+            initializeDatabase();
+        } catch (IOException e) {
+            Toast.makeText(this, "初始化失败", Toast.LENGTH_LONG).show();
+            System.exit(0);
+        }
     }
 
-    public boolean isCityDataReady() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        return preferences.getBoolean("com.chuxin.data.fetch", false);
+    public ChuXinWeatherDB getWeatherDB() {
+        return weatherDB;
     }
 
-    public void saveCityDataState() {
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this)
-                .edit();
-        editor.putBoolean("com.chuxin.data.fetch", true);
-        editor.apply();
+    /**
+     * 初始化数据库对象, 初次启动需要将数据库文件拷贝到目标路径
+     *
+     * @throws IOException
+     */
+    private String initDatabaseFromLocal() throws IOException {
+        File dbFileDir = getDir("db_files", MODE_PRIVATE);
+        File dbFile = new File(dbFileDir, ChuXinWeatherDB.DB_NAME);
+        if (!dbFile.exists()) {
+            InputStream is = getAssets().open("city.db");
+            OutputStream os = new FileOutputStream(dbFile);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) != -1) {
+                os.write(buffer, 0, length);
+            }
+            is.close();
+            os.flush();
+            os.close();
+        }
+        return dbFile.getAbsolutePath();
+    }
+
+    private void initializeDatabase() throws IOException {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean fetchFlag = preferences.getBoolean("com.chuxin.data.fetch", false);
+        weatherDB = ChuXinWeatherDB.getInstance(this, null);
+        if (!fetchFlag) {
+            weatherDB.clear();
+            new CityDataFetcher(weatherDB, new CityDataFetcher.OnCityDataFetchedListener() {
+                @Override
+                public void onCityDataFetched() {
+                    preferences.edit().putBoolean("com.chuxin.data.fetch", true).apply();
+                }
+
+                @Override
+                public void onErrorOccur() {
+                    try {
+                        String dbFilePath = initDatabaseFromLocal();
+                        weatherDB = ChuXinWeatherDB.getInstance(application, dbFilePath);
+                    } catch (IOException ignored) {
+                    }
+                }
+            }).fetch(true);
+        }
     }
 
     /**
